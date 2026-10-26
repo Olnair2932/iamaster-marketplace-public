@@ -28,7 +28,7 @@ header{padding:20px;background:#1e293b;display:flex;justify-content:space-betwee
 <div id="admBox" style="display:none"><p>Logado como <b id="uemail"></b> <button onclick="logout()">Sair</button></p><div class="grid" id="admList"></div></div>
 </div>
 <script>
-const firebaseConfig={apiKey:"AIzaSyCxDqp7R2FENlD8K3DDUdzvf_4OPXnWXjo",authDomain:"iamaster-brain-local-237f3.firebaseapp.com",databaseURL:"https://iamaster-brain-local-237f3-default-rtdb.firebaseio.com",projectId:"iamaster-brain-local-237f3",storageBucket:"iamaster-brain-local-237f3.firebasestorage.app",messagingSenderId:"38779037081",appId:"1:38779037081:web:df51232ad46c88353d1f08"};
+const firebaseConfig={apiKey:"AIzaSyCxDqp7R2FENlD8K3DDUdzvf_4OPXnWXjo",authDomain:"iamaster-1d82a.firebaseapp.com",databaseURL:"https://iamaster-1d82a-default-rtdb.firebaseio.com",projectId:"iamaster-1d82a",storageBucket:"iamaster-1d82a.firebasestorage.app",messagingSenderId:"1079541039086",appId:"1:1079541039086:web:39d90cf98c9ded227298ff"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database(),auth=firebase.auth();
 const ADMIN_EMAIL="olnairpereira@gmail.com";
@@ -40,7 +40,7 @@ auth.onAuthStateChanged(u=>{const isAdmin=u&&u.email===ADMIN_EMAIL;document.getE
 function card(k,v,canDel){return `<div class="card"><h3>${k}</h3><p><b>Especialidade:</b> ${v.especialidade||v.role||'-'}</p><p>${v.descricao||v.description||''}</p><p><small><code>${v.test_memory_code||''}</code></small></p>${canDel?`<button class="del" onclick="delAgent('${k}')">Apagar</button>`:''}</div>`;}
 async function loadPub(){const s=document.getElementById('status');try{const snap=await db.ref('agentes_craft').once('value');const data=snap.val()||{};s.textContent='Sincronizado: '+new Date().toLocaleString('pt-BR')+' - '+Object.keys(data).length+' agentes';document.getElementById('list').innerHTML=Object.entries(data).map(([k,v])=>card(k,v,false)).join('');}catch(e){s.textContent='Erro: '+e.message;}}
 async function loadAdm(){const snap=await db.ref('agentes_craft').once('value');const data=snap.val()||{};document.getElementById('admList').innerHTML=Object.entries(data).map(([k,v])=>card(k,v,true)).join('');}
-async function delAgent(k){if(!confirm('Apagar '+k+'?'))return;const u=auth.currentUser;if(!u||u.email!==ADMIN_EMAIL){alert('Somente admin');return;}const token=await u.getIdToken();await fetch(`https://iamaster-brain-local-237f3-default-rtdb.firebaseio.com/agentes_craft/${k}.json?auth=${token}`,{method:'DELETE'});loadAdm();loadPub();}
+async function delAgent(k){if(!confirm('Apagar '+k+'?'))return;const u=auth.currentUser;if(!u||u.email!==ADMIN_EMAIL){alert('Somente admin');return;}const token=await u.getIdToken();await fetch(`https://iamaster-1d82a-default-rtdb.firebaseio.com/agentes_craft/${k}.json?auth=${token}`,{method:'DELETE'});loadAdm();loadPub();}
 db.ref('agentes_craft').on('value',()=>loadPub());loadPub();
 </script>
 </body>
