@@ -15,6 +15,6 @@ jobs:
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_IAMASTER_BRAIN_LOCAL_237F3 }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_IAMASTER_1D82A }}'
           channelId: live
-          projectId: iamaster-brain-local-237f3
+          projectId: iamaster-1d82a
