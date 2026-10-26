@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IAMaster Marketplace</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+body{font-family:system-ui;margin:0;background:#0f172a;color:#e2e8f0}
+header{padding:20px;background:#1e293b;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.tabs button{padding:10px 16px;margin-right:8px;border:0;border-radius:8px;cursor:pointer}
+.active{background:#22c55e}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:20px}
+.card{background:#1e293b;padding:16px;border-radius:12px}
+.del{background:#ef4444;color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+#adminPanel{display:none;padding:20px}
+</style>
+</head>
+<body>
+<header>
+<div><h1 style="margin:0">IAMaster Marketplace</h1><small>Publico - sincronizado com Realtime DB</small></div>
+<div class="tabs"><button id="tabPub" class="active" onclick="showTab('pub')">Marketplace</button><button id="tabAdm" onclick="showTab('adm')">Administrador</button></div>
+</header>
+<div id="pubTab"><div id="status" style="padding:0 20px"></div><div class="grid" id="list"></div></div>
+<div id="adminPanel">
+<div id="loginBox"><p>Acesso restrito. Faca login com Google.</p><button onclick="login()">Entrar com Google</button></div>
+<div id="admBox" style="display:none"><p>Logado como <b id="uemail"></b> <button onclick="logout()">Sair</button></p><div class="grid" id="admList"></div></div>
+</div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyCxDqp7R2FENlD8K3DDUdzvf_4OPXnWXjo",authDomain:"iamaster-brain-local-237f3.firebaseapp.com",databaseURL:"https://iamaster-brain-local-237f3-default-rtdb.firebaseio.com",projectId:"iamaster-brain-local-237f3",storageBucket:"iamaster-brain-local-237f3.firebasestorage.app",messagingSenderId:"38779037081",appId:"1:38779037081:web:df51232ad46c88353d1f08"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database(),auth=firebase.auth();
+const ADMIN_EMAIL="olnairpereira@gmail.com";
+const provider=new firebase.auth.GoogleAuthProvider();
+function showTab(t){document.getElementById('pubTab').style.display=t==='pub'?'block':'none';document.getElementById('adminPanel').style.display=t==='adm'?'block':'none';document.getElementById('tabPub').classList.toggle('active',t==='pub');document.getElementById('tabAdm').classList.toggle('active',t==='adm');}
+function login(){auth.signInWithPopup(provider).catch(e=>alert(e.message));}
+function logout(){auth.signOut();}
+auth.onAuthStateChanged(u=>{const isAdmin=u&&u.email===ADMIN_EMAIL;document.getElementById('loginBox').style.display=u?'none':'block';document.getElementById('admBox').style.display=isAdmin?'block':'none';if(u&&!isAdmin)document.getElementById('loginBox').innerHTML='<p>Acesso negado.</p><button onclick="logout()">Sair</button>';if(isAdmin){document.getElementById('uemail').textContent=u.email;loadAdm();}});
+function card(k,v,canDel){return `<div class="card"><h3>${k}</h3><p><b>Especialidade:</b> ${v.especialidade||v.role||'-'}</p><p>${v.descricao||v.description||''}</p><p><small><code>${v.test_memory_code||''}</code></small></p>${canDel?`<button class="del" onclick="delAgent('${k}')">Apagar</button>`:''}</div>`;}
+async function loadPub(){const s=document.getElementById('status');try{const snap=await db.ref('agentes_craft').once('value');const data=snap.val()||{};s.textContent='Sincronizado: '+new Date().toLocaleString('pt-BR')+' - '+Object.keys(data).length+' agentes';document.getElementById('list').innerHTML=Object.entries(data).map(([k,v])=>card(k,v,false)).join('');}catch(e){s.textContent='Erro: '+e.message;}}
+async function loadAdm(){const snap=await db.ref('agentes_craft').once('value');const data=snap.val()||{};document.getElementById('admList').innerHTML=Object.entries(data).map(([k,v])=>card(k,v,true)).join('');}
+async function delAgent(k){if(!confirm('Apagar '+k+'?'))return;const u=auth.currentUser;if(!u||u.email!==ADMIN_EMAIL){alert('Somente admin');return;}const token=await u.getIdToken();await fetch(`https://iamaster-brain-local-237f3-default-rtdb.firebaseio.com/agentes_craft/${k}.json?auth=${token}`,{method:'DELETE'});loadAdm();loadPub();}
+db.ref('agentes_craft').on('value',()=>loadPub());loadPub();
+</script>
+</body>
+</html>
