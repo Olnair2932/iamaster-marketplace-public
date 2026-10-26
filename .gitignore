@@ -1,0 +1,6 @@
+service-account.json
+*.json
+!firebase.json
+!.firebaserc
+.google/
+.firebaserc
