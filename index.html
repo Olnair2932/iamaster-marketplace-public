@@ -6,6 +6,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 body{font-family:system-ui;margin:0;background:#0f172a;color:#e2e8f0}
 header{padding:20px;background:#1e293b;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
@@ -30,7 +31,7 @@ header{padding:20px;background:#1e293b;display:flex;justify-content:space-betwee
 <script>
 const firebaseConfig={apiKey:"AIzaSyBqIQY3UGePKK0hPse1iAN71b8SuWOXA7M",authDomain:"iamaster-1d82a.firebaseapp.com",databaseURL:"https://iamaster-1d82a-default-rtdb.firebaseio.com",projectId:"iamaster-1d82a",storageBucket:"iamaster-1d82a.firebasestorage.app",messagingSenderId:"1079541039086",appId:"1:1079541039086:web:39d90cf98c9ded227298ff"};
 firebase.initializeApp(firebaseConfig);
-const db=firebase.database(),auth=firebase.auth();
+const db=firebase.database(),auth=firebase.auth(),firestore=firebase.firestore();
 const ADMIN_EMAIL="olnairpereira@gmail.com";
 const provider=new firebase.auth.GoogleAuthProvider();
 function showTab(t){document.getElementById('pubTab').style.display=t==='pub'?'block':'none';document.getElementById('adminPanel').style.display=t==='adm'?'block':'none';document.getElementById('tabPub').classList.toggle('active',t==='pub');document.getElementById('tabAdm').classList.toggle('active',t==='adm');}
@@ -38,7 +39,72 @@ function login(){auth.signInWithPopup(provider).catch(e=>alert(e.message));}
 function logout(){auth.signOut();}
 auth.onAuthStateChanged(u=>{const isAdmin=u&&u.email===ADMIN_EMAIL;document.getElementById('loginBox').style.display=u?'none':'block';document.getElementById('admBox').style.display=isAdmin?'block':'none';if(u&&!isAdmin)document.getElementById('loginBox').innerHTML='<p>Acesso negado.</p><button onclick="logout()">Sair</button>';if(isAdmin){document.getElementById('uemail').textContent=u.email;loadAdm();}});
 function card(k,v,canDel){return `<div class="card"><h3>${k}</h3><p><b>Especialidade:</b> ${v.especialidade||v.role||'-'}</p><p>${v.descricao||v.description||''}</p><p><small><code>${v.test_memory_code||''}</code></small></p>${canDel?`<button class="del" onclick="delAgent('${k}')">Apagar</button>`:''}</div>`;}
-async function loadPub(){const s=document.getElementById('status');try{const snap=await db.ref('agentes_craft').once('value');const data=snap.val()||{};s.textContent='Sincronizado: '+new Date().toLocaleString('pt-BR')+' - '+Object.keys(data).length+' agentes';document.getElementById('list').innerHTML=Object.entries(data).map(([k,v])=>card(k,v,false)).join('');}catch(e){s.textContent='Erro: '+e.message;}}
+function escapeFirestoreText(value){
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
+}
+async function loadPub(){
+  const status=document.getElementById('status');
+  const list=document.getElementById('list');
+  let realtimeEntries=[];
+  let firestoreDocs=[];
+  const errors=[];
+
+  // Mantém a leitura existente do Realtime Database.
+  try {
+    const snap=await db.ref('agentes_craft').once('value');
+    realtimeEntries=Object.entries(snap.val()||{});
+  } catch(e) {
+    errors.push('Realtime Database: '+e.message);
+  }
+
+  // Nova leitura complementar do Cloud Firestore.
+  try {
+    const snap=await firestore.collection('agentes_craft').get();
+    firestoreDocs=snap.docs.map(doc=>({id:doc.id,data:doc.data()}));
+  } catch(e) {
+    errors.push('Firestore: '+e.message);
+  }
+
+  // Evita repetir agentes do Firestore que já aparecem no Realtime DB.
+  const knownNames=new Set();
+  realtimeEntries.forEach(([key,value])=>{
+    knownNames.add(String(key).trim().toLowerCase());
+    if(value && value.name)
+      knownNames.add(String(value.name).trim().toLowerCase());
+  });
+
+  const realtimeCards=realtimeEntries.map(([key,value])=>card(key,value,false));
+  let firestoreCount=0;
+
+  const firestoreCards=firestoreDocs
+    .filter(({id,data})=>{
+      const name=String(data.name||id).trim();
+      const normalized=name.toLowerCase();
+      if(knownNames.has(normalized)) return false;
+      knownNames.add(normalized);
+      return true;
+    })
+    .map(({id,data})=>{
+      firestoreCount++;
+      // Exibe apenas metadados; nunca inclui systemPrompt no cartão.
+      const name=escapeFirestoreText(data.name||id);
+      const safeData={
+        role:escapeFirestoreText(data.role||'-'),
+        description:escapeFirestoreText(data.description||''),
+        test_memory_code:''
+      };
+      return card(name,safeData,false);
+    });
+
+  list.innerHTML=[...realtimeCards,...firestoreCards].join('');
+  const total=realtimeCards.length+firestoreCards.length;
+  status.textContent='Sincronizado: '+new Date().toLocaleString('pt-BR')+
+    ' - '+total+' agentes (Realtime DB: '+realtimeCards.length+
+    '; Firestore exibidos: '+firestoreCount+')'+
+    (errors.length?' | Aviso: '+errors.join(' | '):'');
+}
 async function loadAdm(){const snap=await db.ref('agentes_craft').once('value');const data=snap.val()||{};document.getElementById('admList').innerHTML=Object.entries(data).map(([k,v])=>card(k,v,true)).join('');}
 async function delAgent(k){if(!confirm('Apagar '+k+'?'))return;const u=auth.currentUser;if(!u||u.email!==ADMIN_EMAIL){alert('Somente admin');return;}const token=await u.getIdToken();await fetch(`https://iamaster-1d82a-default-rtdb.firebaseio.com/agentes_craft/${k}.json?auth=${token}`,{method:'DELETE'});loadAdm();loadPub();}
 db.ref('agentes_craft').on('value',()=>loadPub());loadPub();

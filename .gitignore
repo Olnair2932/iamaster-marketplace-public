@@ -4,3 +4,6 @@ service-account.json
 !.firebaserc
 .google/
 .firebaserc
+
+# Credenciais privadas do Firebase
+/service-account.json
