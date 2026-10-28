@@ -2,111 +2,103 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>IAMaster Marketplace</title>
+<title>IAMaster Marketplace - Agentes de IA</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-body{font-family:system-ui;margin:0;background:#0f172a;color:#e2e8f0}
-header{padding:20px;background:#1e293b;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.tabs button{padding:10px 16px;margin-right:8px;border:0;border-radius:8px;cursor:pointer}
-.active{background:#22c55e}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:20px}
-.card{background:#1e293b;padding:16px;border-radius:12px}
-.del{background:#ef4444;color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
-#adminPanel{display:none;padding:20px}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;margin:0;background:#0b1120;color:#e2e8f0;min-height:100vh}
+header{background:linear-gradient(135deg,#1e293b,#0f172a);padding:16px 20px;position:sticky;top:0;z-index:50;border-bottom:1px solid #334155}
+.nav{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;max-width:1200px;margin:0 auto}
+.logo{font-size:22px;font-weight:800;color:#fff}.logo span{color:#22c55e}
+.search{flex:1;max-width:400px;min-width:200px;padding:10px 16px;border:1px solid #334155;border-radius:999px;background:#1e293b;color:#fff;font-size:14px}
+.tabs button{padding:10px 18px;margin-left:8px;border:0;border-radius:999px;cursor:pointer;font-weight:600;background:#334155;color:#e2e8f0}
+.tabs button.active{background:#22c55e;color:#000}
+.hero{max-width:1200px;margin:0 auto;padding:32px 20px 8px;text-align:center}
+.hero h2{margin:0 0 8px;font-size:28px;color:#fff}
+.hero p{color:#94a3b8;margin:0}
+.chips{max-width:1200px;margin:16px auto;padding:0 20px;display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:8px 16px;border-radius:999px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;cursor:pointer;font-size:13px}
+.chip.active{background:#22c55e;color:#000;border-color:#22c55e;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:20px;max-width:1200px;margin:0 auto}
+.card{background:#1e293b;border:1px solid #334155;padding:20px;border-radius:16px;display:flex;flex-direction:column;transition:transform .15s}
+.card:hover{transform:translateY(-3px);border-color:#22c55e}
+.card h3{margin:0 0 8px;color:#fff;font-size:18px}
+.badge{display:inline-block;background:#22c55e22;color:#22c55e;border:1px solid #22c55e55;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:10px}
+.spec{color:#93c5fd;font-size:13px;font-weight:600;margin:0 0 8px}
+.desc{color:#94a3b8;font-size:14px;flex:1;margin:0 0 16px;line-height:1.5}
+.btnrow{display:flex;gap:8px}
+.btn{padding:12px;border:0;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px}
+.btn-chat{background:#22c55e;color:#000;flex:1}
+.btn-chat:hover{background:#16a34a}
+.btn-share{background:#334155;color:#e2e8f0;padding:12px 14px}
+.btn-del{background:#ef4444;color:#fff;margin-top:8px;padding:8px;font-size:13px;width:100%}
+.btn-dl{background:#3b82f6;color:#fff;text-decoration:none;display:block;text-align:center;padding:14px;border-radius:10px;font-weight:700;margin-top:12px}
+.statusbar{max-width:1200px;margin:0 auto;padding:0 20px;color:#64748b;font-size:13px}
+#adminPanel{display:none;max-width:1200px;margin:0 auto;padding:20px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:#1e293b;border-radius:20px;padding:32px;max-width:420px;width:100%;text-align:center;border:1px solid #334155}
+.modal h3{color:#fff;margin:0 0 12px}
+.modal p{color:#94a3b8;margin:0 0 8px}
+.modal .close{margin-top:16px;background:transparent;border:1px solid #475569;color:#94a3b8;padding:10px 24px;border-radius:10px;cursor:pointer}
+.apk-icon{font-size:48px;margin-bottom:12px}
+footer{text-align:center;padding:32px 20px;color:#475569;font-size:13px}
+.src-tag{font-size:10px;color:#475569;margin-top:8px}
 </style>
 </head>
 <body>
-<header>
-<div><h1 style="margin:0">IAMaster Marketplace</h1><small>Publico - sincronizado com Realtime DB</small></div>
-<div class="tabs"><button id="tabPub" class="active" onclick="showTab('pub')">Marketplace</button><button id="tabAdm" onclick="showTab('adm')">Administrador</button></div>
-</header>
-<div id="pubTab"><div id="status" style="padding:0 20px"></div><div class="grid" id="list"></div></div>
+<header><div class="nav">
+<div class="logo">🤖 <span>IAMaster</span> Marketplace</div>
+<input class="search" id="search" placeholder="🔍 Buscar agentes..." oninput="render()">
+<div class="tabs"><button id="tabPub" class="active" onclick="showTab('pub')">Marketplace</button><button id="tabAdm" onclick="showTab('adm')">Admin</button></div>
+</div></header>
+<div id="pubTab">
+<div class="hero"><h2>Agentes de IA prontos para usar</h2><p>Escolha um agente e converse pelo app Android</p></div>
+<div class="chips" id="chips"></div>
+<div class="statusbar" id="status">Carregando...</div>
+<div class="grid" id="list"></div>
+</div>
 <div id="adminPanel">
-<div id="loginBox"><p>Acesso restrito. Faca login com Google.</p><button onclick="login()">Entrar com Google</button></div>
+<div id="loginBox"><p>Acesso restrito.</p><button class="btn btn-chat" style="max-width:300px" onclick="login()">Entrar com Google</button></div>
 <div id="admBox" style="display:none"><p>Logado como <b id="uemail"></b> <button onclick="logout()">Sair</button></p><div class="grid" id="admList"></div></div>
 </div>
+<div class="modal-bg" id="apkModal"><div class="modal">
+<div class="apk-icon">📱</div>
+<h3 id="mTitle">Baixar o app</h3>
+<p>Para conversar com este agente, baixe o <b>IAMaster APK</b> no seu Android.</p>
+<a class="btn-dl" id="mDl" href="#" target="_blank">⬇ Baixar APK</a>
+<button class="close" onclick="closeModal()">Fechar</button>
+</div></div>
+<footer>IAMaster Marketplace · iamaster-1d82a · <span id="year"></span></footer>
 <script>
+const APK_URL="https://github.com/Olnair2932/DOWNLOADS/releases/latest/download/app.apk";
+const SITE_URL="https://iamaster-1d82a.web.app";
 const firebaseConfig={apiKey:"AIzaSyBqIQY3UGePKK0hPse1iAN71b8SuWOXA7M",authDomain:"iamaster-1d82a.firebaseapp.com",databaseURL:"https://iamaster-1d82a-default-rtdb.firebaseio.com",projectId:"iamaster-1d82a",storageBucket:"iamaster-1d82a.firebasestorage.app",messagingSenderId:"1079541039086",appId:"1:1079541039086:web:39d90cf98c9ded227298ff"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database(),auth=firebase.auth(),firestore=firebase.firestore();
-const ADMIN_EMAIL="olnairpereira@gmail.com";
 const provider=new firebase.auth.GoogleAuthProvider();
+let ALL=[],activeCat='Todos';
+document.getElementById('year').textContent=new Date().getFullYear();
 function showTab(t){document.getElementById('pubTab').style.display=t==='pub'?'block':'none';document.getElementById('adminPanel').style.display=t==='adm'?'block':'none';document.getElementById('tabPub').classList.toggle('active',t==='pub');document.getElementById('tabAdm').classList.toggle('active',t==='adm');}
 function login(){auth.signInWithPopup(provider).catch(e=>alert(e.message));}
 function logout(){auth.signOut();}
-auth.onAuthStateChanged(u=>{const isAdmin=u&&u.email===ADMIN_EMAIL;document.getElementById('loginBox').style.display=u?'none':'block';document.getElementById('admBox').style.display=isAdmin?'block':'none';if(u&&!isAdmin)document.getElementById('loginBox').innerHTML='<p>Acesso negado.</p><button onclick="logout()">Sair</button>';if(isAdmin){document.getElementById('uemail').textContent=u.email;loadAdm();}});
-function card(k,v,canDel){return `<div class="card"><h3>${k}</h3><p><b>Especialidade:</b> ${v.especialidade||v.role||'-'}</p><p>${v.descricao||v.description||''}</p><p><small><code>${v.test_memory_code||''}</code></small></p>${canDel?`<button class="del" onclick="delAgent('${k}')">Apagar</button>`:''}</div>`;}
-function escapeFirestoreText(value){
-  return String(value ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-  }[c]));
-}
-async function loadPub(){
-  const status=document.getElementById('status');
-  const list=document.getElementById('list');
-  let realtimeEntries=[];
-  let firestoreDocs=[];
-  const errors=[];
-
-  // Mantém a leitura existente do Realtime Database.
-  try {
-    const snap=await db.ref('agentes_craft').once('value');
-    realtimeEntries=Object.entries(snap.val()||{});
-  } catch(e) {
-    errors.push('Realtime Database: '+e.message);
-  }
-
-  // Nova leitura complementar do Cloud Firestore.
-  try {
-    const snap=await firestore.collection('agentes_craft').get();
-    firestoreDocs=snap.docs.map(doc=>({id:doc.id,data:doc.data()}));
-  } catch(e) {
-    errors.push('Firestore: '+e.message);
-  }
-
-  // Evita repetir agentes do Firestore que já aparecem no Realtime DB.
-  const knownNames=new Set();
-  realtimeEntries.forEach(([key,value])=>{
-    knownNames.add(String(key).trim().toLowerCase());
-    if(value && value.name)
-      knownNames.add(String(value.name).trim().toLowerCase());
-  });
-
-  const realtimeCards=realtimeEntries.map(([key,value])=>card(key,value,false));
-  let firestoreCount=0;
-
-  const firestoreCards=firestoreDocs
-    .filter(({id,data})=>{
-      const name=String(data.name||id).trim();
-      const normalized=name.toLowerCase();
-      if(knownNames.has(normalized)) return false;
-      knownNames.add(normalized);
-      return true;
-    })
-    .map(({id,data})=>{
-      firestoreCount++;
-      // Exibe apenas metadados; nunca inclui systemPrompt no cartão.
-      const name=escapeFirestoreText(data.name||id);
-      const safeData={
-        role:escapeFirestoreText(data.role||'-'),
-        description:escapeFirestoreText(data.description||''),
-        test_memory_code:''
-      };
-      return card(name,safeData,false);
-    });
-
-  list.innerHTML=[...realtimeCards,...firestoreCards].join('');
-  const total=realtimeCards.length+firestoreCards.length;
-  status.textContent='Sincronizado: '+new Date().toLocaleString('pt-BR')+
-    ' - '+total+' agentes (Realtime DB: '+realtimeCards.length+
-    '; Firestore exibidos: '+firestoreCount+')'+
-    (errors.length?' | Aviso: '+errors.join(' | '):'');
-}
-async function loadAdm(){const snap=await db.ref('agentes_craft').once('value');const data=snap.val()||{};document.getElementById('admList').innerHTML=Object.entries(data).map(([k,v])=>card(k,v,true)).join('');}
-async function delAgent(k){if(!confirm('Apagar '+k+'?'))return;const u=auth.currentUser;if(!u||u.email!==ADMIN_EMAIL){alert('Somente admin');return;}const token=await u.getIdToken();await fetch(`https://iamaster-1d82a-default-rtdb.firebaseio.com/agentes_craft/${k}.json?auth=${token}`,{method:'DELETE'});loadAdm();loadPub();}
+auth.onAuthStateChanged(async u=>{document.getElementById('loginBox').style.display=u?'none':'block';let isAdmin=false;if(u){try{const rs=await db.ref('admins/'+u.uid).once('value');const rd=rs.val();isAdmin=!!(rd&&rd.role==='admin');}catch(e){console.warn(e.message);}}document.getElementById('admBox').style.display=isAdmin?'block':'none';if(u&&!isAdmin)document.getElementById('loginBox').innerHTML='<p>Acesso negado.</p><button class="btn btn-chat" style="max-width:300px" onclick="logout()">Sair</button>';if(isAdmin){document.getElementById('uemail').textContent=u.email+' ('+u.uid+')';loadAdm();}});
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function agentLink(id){return SITE_URL+'/?agente='+encodeURIComponent(id);}
+async function shareAgent(id,nome){const url=agentLink(id);const title='🤖 '+nome+' - IAMaster Marketplace';const text='Confira o agente '+nome+' no IAMaster Marketplace';if(navigator.share){try{await navigator.share({title:title,text:text,url:url});return;}catch(e){if(e&&e.name==='AbortError')return;}}if(navigator.clipboard&&navigator.clipboard.writeText){try{await navigator.clipboard.writeText(url);alert('🔗 Link copiado!');return;}catch(e){}}prompt('Copie o link do agente:',url);}
+function adCard(a){const nome=esc(a.nome||a.id);const esp=esc(a.especialidade||a.role||'');const desc=esc(a.descricao||a.description||'');const modelo=esc(a.model||a.modelo||'IA');const jsId=String(a.id).replace(/'/g,'');return `<div class="card"><h3>${nome}</h3><span class="badge">${modelo}</span>${esp?`<p class="spec">${esp}</p>`:''}<p class="desc">${desc||'Agente de IA disponível no marketplace.'}</p><div class="btnrow"><button class="btn btn-chat" onclick="openModal('${jsId}','${nome.replace(/'/g,'')}')">💬 Conversar</button><button class="btn btn-share" title="Compartilhar" onclick="shareAgent('${jsId}','${nome.replace(/'/g,'')}')">🔗</button></div><div class="src-tag">${a.src==='fs'?'Firestore':'Realtime DB'}</div></div>`;}
+function render(){const q=document.getElementById('search').value.toLowerCase();let f=ALL.filter(a=>{const okC=activeCat==='Todos'||(a.categoria||'Geral')===activeCat;const okQ=!q||(a.nome||a.id||'').toLowerCase().includes(q)||(a.descricao||a.description||'').toLowerCase().includes(q)||(a.especialidade||a.role||'').toLowerCase().includes(q);return okC&&okQ;});document.getElementById('list').innerHTML=f.map(adCard).join('')||'<p style="padding:20px;color:#64748b">Nenhum agente encontrado.</p>';const cats=['Todos',...new Set(ALL.map(a=>a.categoria||'Geral'))];document.getElementById('chips').innerHTML=cats.map(c=>`<span class="chip${c===activeCat?' active':''}" onclick="setCat('${esc(c)}')">${esc(c)}</span>`).join('');}
+function setCat(c){activeCat=c;render();}
+function openModal(id,nome){document.getElementById('mTitle').textContent=nome;document.getElementById('mDl').href=APK_URL;document.getElementById('apkModal').classList.add('open');}
+function closeModal(){document.getElementById('apkModal').classList.remove('open');}
+document.getElementById('apkModal').addEventListener('click',e=>{if(e.target.id==='apkModal')closeModal();});
+async function loadPub(){const status=document.getElementById('status');const list=document.getElementById('list');let realtimeEntries=[];let firestoreDocs=[];const errors=[];try{const snap=await db.ref('agentes_craft').once('value');realtimeEntries=Object.entries(snap.val()||{});}catch(e){errors.push('Realtime Database: '+e.message);}try{const snap=await firestore.collection('agentes_craft').get();firestoreDocs=snap.docs.map(doc=>({id:doc.id,data:doc.data()}));}catch(e){errors.push('Firestore: '+e.message);}const knownNames=new Set();realtimeEntries.forEach(([key,value])=>{knownNames.add(String(key).trim().toLowerCase());if(value&&value.name)knownNames.add(String(value.name).trim().toLowerCase());});let items=realtimeEntries.map(([key,value])=>({id:key,nome:key,src:'rtdb',...value}));let fsCount=0;firestoreDocs.forEach(({id,data})=>{const name=String(data.name||id).trim();const norm=name.toLowerCase();if(knownNames.has(norm))return;knownNames.add(norm);fsCount++;items.push({id:id,nome:data.name||id,src:'fs',especialidade:data.role||'-',descricao:data.description||'',model:data.model||data.modelo||'IA',categoria:data.categoria||'Geral'});});ALL=items;status.textContent='Sincronizado: '+new Date().toLocaleString('pt-BR')+' - '+items.length+' agentes (Realtime DB: '+realtimeEntries.length+'; Firestore exibidos: '+fsCount+')'+(errors.length?' | Aviso: '+errors.join(' | '):'');render();checkDeepLink();}
+function checkDeepLink(){const p=new URLSearchParams(location.search);const aid=p.get('agente');if(!aid)return;const a=ALL.find(x=>String(x.id)===String(aid));if(a)openModal(a.id,a.nome||a.id);}
+async function loadAdm(){try{const el=document.getElementById('admList');el.innerHTML='<p>Carregando...</p>';let items=[];try{const snap=await db.ref('agentes_craft').once('value');const d=snap.val()||{};items=items.concat(Object.entries(d).map(([k,v])=>({id:k,nome:k,src:'rtdb',...v})));}catch(e){console.warn(e.message);}try{const qs=await firestore.collection('agentes_craft').get();qs.forEach(doc=>items.push({id:doc.id,nome:doc.data().name||doc.id,src:'fs',...doc.data()}));}catch(e){console.warn(e.message);}el.innerHTML=items.map(a=>`<div class="card"><h3>${esc(a.nome||a.id)}</h3><p class="spec">${esc(a.especialidade||a.role||'-')}</p><button class="btn-del btn" onclick="delAgent('${String(a.id).replace(/'/g,'')}','${a.src}')">🗑 Apagar (${a.src})</button></div>`).join('')||'<p>Nenhum agente.</p>';}catch(e){document.getElementById('admList').innerHTML='<p style="color:#f87171">Erro: '+esc(e.message)+'</p>';}}
+async function delAgent(id,src){if(!confirm('Apagar '+id+' ('+src+')?'))return;const u=auth.currentUser;if(!u){alert('Login necessário');return;}try{if(src==='fs'){await firestore.collection('agentes_craft').doc(id).delete();}else{const token=await u.getIdToken();await fetch(`https://iamaster-1d82a-default-rtdb.firebaseio.com/agentes_craft/${encodeURIComponent(id)}.json?auth=${token}`,{method:'DELETE'});}loadAdm();loadPub();}catch(e){alert('Erro ao apagar: '+e.message);}}
 db.ref('agentes_craft').on('value',()=>loadPub());loadPub();
 </script>
 </body>
