@@ -47,6 +47,8 @@ header{background:linear-gradient(135deg,#1e293b,#0f172a);padding:16px 20px;posi
 .apk-icon{font-size:48px;margin-bottom:12px}
 footer{text-align:center;padding:32px 20px;color:#475569;font-size:13px}
 .src-tag{font-size:10px;color:#475569;margin-top:8px}
+#topBtn{display:none;position:fixed;bottom:24px;right:24px;z-index:99;width:52px;height:52px;border-radius:50%;border:0;background:#22c55e;color:#000;font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#topBtn.show{display:block}
 </style>
 </head>
 <body>
@@ -72,6 +74,7 @@ footer{text-align:center;padding:32px 20px;color:#475569;font-size:13px}
 <a class="btn-dl" id="mDl" href="#" target="_blank">⬇ Baixar APK</a>
 <button class="close" onclick="closeModal()">Fechar</button>
 </div></div>
+<button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Voltar ao topo">↑</button>
 <footer>IAMaster Marketplace · iamaster-1d82a · <span id="year"></span></footer>
 <script>
 const APK_URL="https://github.com/Olnair2932/DOWNLOADS/releases/latest/download/app.apk";
