@@ -1,12 +1,7 @@
-name: Deploy to Firebase Hosting
+name: Deploy Firebase Hosting
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    branches: [main]
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,7 +9,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_IAMASTER_1D82A }}'
-          channelId: live
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_IAMASTER_1D82A }}
           projectId: iamaster-1d82a
+          channelId: live
